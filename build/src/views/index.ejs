@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>WebRTC Live Streaming</title>
+    <style>
+        video {
+            width: 45%;
+            margin: 10px;
+        }
+
+        button {
+            margin: 10px;
+            padding: 10px 15px;
+            font-size: 16px;
+        }
+    </style>
+</head>
+
+<body>
+    <h1>WebRTC Live Streaming</h1>
+    <video id="localVideo" autoplay muted></video>
+    <video id="remoteVideo" autoplay></video>
+    <button id="connectButton">Connect Call</button>
+
+    <script src="/socket.io/socket.io.js"></script>
+    <script src="../public/client.js"></script>
+</body>
+
+</html>
