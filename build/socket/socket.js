@@ -9,6 +9,7 @@ const connectSocket = (server) => {
     io.on("connection", (socket) => {
         console.log('New client connected:', socket.id);
         socket.on('join', () => {
+            console.log("join socket hit---");
             socket.broadcast.emit('new-peer', socket.id);
         });
         socket.on('signal', (data) => {

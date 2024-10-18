@@ -21,6 +21,64 @@
 
 <body>
     <h1>WebRTC Live Streaming</h1>
+    <button id="connectButton">Broadcast Stream</button>
+
+    <script>
+        document.getElementById("connectButton").addEventListener("click", () => {
+            // const streamId = Math.random().toString(36).substr(2, 8); // Generate unique stream ID
+            const broadcastUrl = `/broadcast`; // URL with stream ID
+            window.open(broadcastUrl, "_blank"); // Open broadcast in a new window/tab
+        });
+    </script>
+
+    <button id="viewButton">View Stream</button>
+    
+    <script>
+        document.getElementById("viewButton").addEventListener("click", () => {
+            // const streamId = Math.random().toString(36).substr(2, 8); // Generate unique stream ID
+            const broadcastUrl = `/viewer`; // URL with stream ID
+            window.open(broadcastUrl, "_blank"); // Open broadcast in a new window/tab
+        });
+    </script>
+</body>
+
+</html>
+
+
+
+
+
+
+
+
+
+
+
+
+
+<!-- <!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>WebRTC Live Streaming</title>
+    <style>
+        video {
+            width: 45%;
+            margin: 10px;
+        }
+
+        button {
+            margin: 10px;
+            padding: 10px 15px;
+            font-size: 16px;
+        }
+    </style>
+</head>
+
+<body>
+    <h1>WebRTC Live Streaming</h1>
     <video id="localVideo" autoplay muted></video>
     <video id="remoteVideo" autoplay></video>
     <button id="connectButton">Connect Call</button>
@@ -28,4 +86,4 @@
     <script src="https://unpkg.com/simple-peer/simplepeer.min.js"></script>
     <script src="/public/client.js"></script>
 </body>
-</html>
+</html> -->

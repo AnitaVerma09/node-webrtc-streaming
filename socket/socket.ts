@@ -9,7 +9,7 @@ const connectSocket = (server: any) => {
         console.log('New client connected:', socket.id);
 
         socket.on('join', () => {
-            
+            console.log("join socket hit---")
             socket.broadcast.emit('new-peer', socket.id);
         });
 

@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>WebRTC Live Streaming</title>
+    <style>
+        body {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: flex-start;
+            margin: 0;
+            padding: 0;
+        }
+
+        video {
+            width: 45%;
+            margin: 10px;
+        }
+
+        /* Button styling */
+        button {
+            margin: 10px;
+            padding: 10px 15px;
+            font-size: 16px;
+            cursor: pointer;
+        }
+
+        /* Disabled button styling */
+        button:disabled {
+            background-color: #ddd;
+            color: #666;
+            border: 1px solid #ccc;
+            cursor: not-allowed;
+        }
+
+        /* Header styling */
+        .header {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+    </style>
+</head>
+
+<body>
+    <h1>Viewer Page</h1>
+
+    <!-- Header section for buttons -->
+    <div class="header">
+        <button id="joinButton">Join</button>
+        <button id="cancelButton" disabled>Stop</button>
+    </div>
+    <video id="localVideo" autoplay muted></video>
+    <video id="remoteVideo" autoplay></video>
+    <!-- <script src="https://cdn.socket.io/4.5.4/socket.io.min.js"></script>
+    <script src="https://unpkg.com/simple-peer/simplepeer.min.js"></script>
+    <script src="/public/broadcast.js"></script> -->
+
+    <script src="https://cdn.socket.io/4.5.4/socket.io.min.js"></script>
+    <script src="https://unpkg.com/simple-peer/simplepeer.min.js"></script>
+    <script src="/public/common.js"></script>
+    <script src="/public/viewer.js"></script>
+ 
+</body>
+</html>

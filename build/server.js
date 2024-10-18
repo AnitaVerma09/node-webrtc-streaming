@@ -27,12 +27,23 @@ const path_1 = __importDefault(require("path"));
     app.set('view engine', 'ejs');
     app.set('views', path_1.default.join(__dirname, 'views'));
     app.use(express_1.default.static(path_1.default.join(__dirname)));
+    app.get('/api/config', (req, res) => {
+        res.json({
+            SERVER_URL: process.env.PATH
+        });
+    });
     app.get('/', (req, res) => {
         res.render('index');
     });
+    app.get('/broadcast', (req, res) => {
+        res.render('broadcast');
+    });
+    app.get('/viewer', (req, res) => {
+        res.render('viewer');
+    });
     const server = http_1.default.createServer(app);
-    server.listen(3000, () => {
-        console.log(`Server is listening on port ${3000}`);
+    server.listen(process.env.PORT, () => {
+        console.log(`Server is listening on port ${process.env.PORT}`);
     });
     (0, socket_1.connectSocket)(server);
 }))();

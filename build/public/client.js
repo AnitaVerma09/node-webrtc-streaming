@@ -8,41 +8,49 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
         step((generator = generator.apply(thisArg, _arguments || [])).next());
     });
 };
-document.addEventListener("DOMContentLoaded", () => {
-    const socket = window.io("http://localhost:3000");
+document.addEventListener("DOMContentLoaded", () => __awaiter(void 0, void 0, void 0, function* () {
+    const response = yield fetch('/api/config');
+    const config = yield response.json();
+    // const socket = (window as any).io("http://localhost:3000");
+    const socket = window.io(config.PATH);
     const localVideo = document.getElementById("localVideo");
     const remoteVideo = document.getElementById("remoteVideo");
     const connectButton = document.getElementById("connectButton");
     let localStream;
     let peer;
-    function getMedia() {
-        return __awaiter(this, void 0, void 0, function* () {
-            try {
-                localStream = yield navigator.mediaDevices.getUserMedia({ video: true, audio: true });
-                localVideo.srcObject = localStream;
-                socket.emit("join");
-            }
-            catch (error) {
-                console.error("Error accessing media devices.", error);
-            }
-        });
-    }
-    function createPeer(isInitiator, remoteSocketId) {
+    const getMedia = () => __awaiter(void 0, void 0, void 0, function* () {
+        try {
+            localStream = yield navigator.mediaDevices.getUserMedia({ video: true, audio: true });
+            localVideo.srcObject = localStream;
+            socket.emit("join");
+        }
+        catch (error) {
+            console.error("Error accessing media devices.", error);
+        }
+    });
+    const createPeer = (isInitiator, remoteSocketId) => __awaiter(void 0, void 0, void 0, function* () {
+        console.log("----createPeer----function----");
+        console.log("isInitiator---", isInitiator);
+        console.log("remoteSocketId----", remoteSocketId);
         peer = new window.SimplePeer({
             initiator: isInitiator,
             stream: localStream,
             trickle: false,
         });
         peer.on("signal", (signal) => {
+            console.log("createPeer signal---", signal);
             socket.emit("signal", { to: remoteSocketId, signal });
         });
         peer.on("stream", (remoteStream) => {
+            console.log("createPeer stream---", remoteStream);
             remoteVideo.srcObject = remoteStream;
         });
         peer.on("error", (err) => console.error("Peer connection error:", err));
-    }
+    });
     connectButton.addEventListener("click", () => {
-        socket.emit("join");
+        console.log("click button---");
+        getMedia();
+        // socket.emit("join");
     });
     socket.on("new-peer", (remoteSocketId) => {
         console.log("New peer connected:", remoteSocketId);
@@ -55,5 +63,5 @@ document.addEventListener("DOMContentLoaded", () => {
         }
         peer.signal(data.signal);
     });
-    getMedia();
-});
+    // getMedia();
+}));

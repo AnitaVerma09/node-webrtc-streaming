@@ -1,12 +1,15 @@
-document.addEventListener("DOMContentLoaded", () => {
-    const socket = (window as any).io("http://localhost:3000");
+document.addEventListener("DOMContentLoaded", async () => {
+    const response = await fetch('/api/config');
+    const config = await response.json();
+    // const socket = (window as any).io("http://localhost:3000");
+    const socket = (window as any).io(config.PATH);
     const localVideo = document.getElementById("localVideo") as HTMLVideoElement;
     const remoteVideo = document.getElementById("remoteVideo") as HTMLVideoElement;
     const connectButton = document.getElementById("connectButton") as HTMLButtonElement;
     let localStream: MediaStream;
     let peer: any;
 
-    async function getMedia() {
+    const getMedia = async () => {
         try {
             localStream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
             localVideo.srcObject = localStream;
@@ -16,7 +19,10 @@ document.addEventListener("DOMContentLoaded", () => {
         }
     }
 
-    function createPeer(isInitiator: boolean, remoteSocketId: any) {
+    const createPeer = async (isInitiator: boolean, remoteSocketId: string) => {
+        console.log("----createPeer----function----")
+        console.log("isInitiator---", isInitiator)
+        console.log("remoteSocketId----", remoteSocketId)
         peer = new (window as any).SimplePeer({
             initiator: isInitiator,
             stream: localStream,
@@ -24,10 +30,12 @@ document.addEventListener("DOMContentLoaded", () => {
         });
 
         peer.on("signal", (signal: any) => {
+            console.log("createPeer signal---", signal);
             socket.emit("signal", { to: remoteSocketId, signal });
         });
 
         peer.on("stream", (remoteStream: MediaStream) => {
+            console.log("createPeer stream---", remoteStream);
             remoteVideo.srcObject = remoteStream;
         });
 
@@ -35,7 +43,10 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     connectButton.addEventListener("click", () => {
-        socket.emit("join");
+        console.log("click button---")
+        getMedia();
+
+        // socket.emit("join");
     });
 
     socket.on("new-peer", (remoteSocketId: string) => {
@@ -51,5 +62,5 @@ document.addEventListener("DOMContentLoaded", () => {
         peer.signal(data.signal);
     });
 
-    getMedia();
+    // getMedia();
 });

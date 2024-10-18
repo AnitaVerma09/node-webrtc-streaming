@@ -4,7 +4,7 @@
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "build": "rm -rf build && tsc --build && cp -r views build/views && cp -r public/client1.js build/public/client1.js",
+    "build": "rm -rf build && tsc --build && cp -r views build/views",
     "start": "node build/server.js"
   },
   "author": "",
