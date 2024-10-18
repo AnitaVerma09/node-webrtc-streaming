@@ -4,18 +4,20 @@
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "build": "rm -rf build && tsc --build && cp -r src/views build/src/views",
+    "build": "rm -rf build && tsc --build && cp -r views build/views && cp -r public/client1.js build/public/client1.js",
     "start": "node build/server.js"
   },
   "author": "",
   "license": "ISC",
   "description": "",
   "dependencies": {
+    "@types/socket.io": "^3.0.1",
     "cors": "^2.8.5",
     "dotenv": "^16.4.5",
     "ejs": "^3.1.10",
     "express": "^4.21.1",
     "http": "^0.0.1-security",
+    "ping": "^0.4.4",
     "simple-peer": "^9.11.1",
     "socket.io": "^4.8.0",
     "socket.io-client": "^4.8.0"

@@ -15,7 +15,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 const express_1 = __importDefault(require("express"));
 const http_1 = __importDefault(require("http"));
 const cors_1 = __importDefault(require("cors"));
-const socket_1 = require("./src/socket/socket");
+const socket_1 = require("./socket/socket");
 const dotenv_1 = require("dotenv");
 const path_1 = __importDefault(require("path"));
 (0, dotenv_1.config)();
@@ -25,14 +25,10 @@ const path_1 = __importDefault(require("path"));
     app.use(express_1.default.json());
     app.use(express_1.default.urlencoded({ extended: true }));
     app.set('view engine', 'ejs');
-    app.use(express_1.default.static('views'));
-    // app.use(express.static('public'));
-    app.use(express_1.default.static(path_1.default.join(__dirname, './src/public')));
-    // Set the views directory
-    app.set('views', path_1.default.join(__dirname, './src/views'));
-    // Your route handlers go here
+    app.set('views', path_1.default.join(__dirname, 'views'));
+    app.use(express_1.default.static(path_1.default.join(__dirname)));
     app.get('/', (req, res) => {
-        res.render('index'); // This should match your view file
+        res.render('index');
     });
     const server = http_1.default.createServer(app);
     server.listen(3000, () => {
