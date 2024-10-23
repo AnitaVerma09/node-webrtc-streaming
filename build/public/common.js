@@ -42,6 +42,7 @@ const createPeer = (isInitiator, remoteSocketId) => __awaiter(void 0, void 0, vo
         stream: localStream,
         trickle: false,
     });
+    console.log("peer----", peer);
     peer.on("signal", (signal) => {
         console.log("createPeer signal", signal);
         socket.emit("signal", { to: remoteSocketId, signal });

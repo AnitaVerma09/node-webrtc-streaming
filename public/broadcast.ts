@@ -5,6 +5,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     if (!startButton || !stopButton) {
         console.error("Required buttons not found. This might not be the broadcast page.");
         return;
+        
     }
 
     // Initialize socket

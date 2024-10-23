@@ -37,6 +37,8 @@ const createPeer = async (isInitiator: boolean, remoteSocketId: string) => {
         trickle: false,
     });
 
+    console.log("peer----", peer);
+
     peer.on("signal", (signal: any) => {
         console.log("createPeer signal", signal);
         socket.emit("signal", { to: remoteSocketId, signal });
