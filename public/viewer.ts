@@ -23,7 +23,6 @@ document.addEventListener("DOMContentLoaded", async () => {
 
     cancelButton.addEventListener('click', () => {
         console.log("Cancel button clicked");
-        // socket.emit("join");
         cancelBroadcast();
         toggleButtons();
     });

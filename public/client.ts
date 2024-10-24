@@ -1,7 +1,6 @@
 document.addEventListener("DOMContentLoaded", async () => {
     const response = await fetch('/api/config');
     const config = await response.json();
-    // const socket = (window as any).io("http://localhost:3000");
     const socket = (window as any).io(config.PATH);
     const localVideo = document.getElementById("localVideo") as HTMLVideoElement;
     const remoteVideo = document.getElementById("remoteVideo") as HTMLVideoElement;
@@ -20,9 +19,6 @@ document.addEventListener("DOMContentLoaded", async () => {
     }
 
     const createPeer = async (isInitiator: boolean, remoteSocketId: string) => {
-        console.log("----createPeer----function----")
-        console.log("isInitiator---", isInitiator)
-        console.log("remoteSocketId----", remoteSocketId)
         peer = new (window as any).SimplePeer({
             initiator: isInitiator,
             stream: localStream,
@@ -45,8 +41,6 @@ document.addEventListener("DOMContentLoaded", async () => {
     connectButton.addEventListener("click", () => {
         console.log("click button---")
         getMedia();
-
-        // socket.emit("join");
     });
 
     socket.on("new-peer", (remoteSocketId: string) => {
@@ -62,5 +56,4 @@ document.addEventListener("DOMContentLoaded", async () => {
         peer.signal(data.signal);
     });
 
-    // getMedia();
 });
