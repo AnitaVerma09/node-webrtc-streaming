@@ -43,6 +43,13 @@
             align-items: center;
             margin-bottom: 20px;
         }
+
+        .room-id {
+            margin-top: 20px;
+            font-size: 18px;
+            font-weight: bold;
+        }
+        
     </style>
 </head>
 
@@ -56,6 +63,8 @@
     </div>
     <video id="localVideo" autoplay muted></video>
     <video id="remoteVideo" autoplay></video>
+    <!-- Room ID display element -->
+    <div class="room-id" id="roomIdDisplay">Broadcast ID: Not started</div>
 
     <script src="https://cdn.socket.io/4.5.4/socket.io.min.js"></script>
     <script src="https://unpkg.com/simple-peer/simplepeer.min.js"></script>

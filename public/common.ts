@@ -1,53 +1,188 @@
-let socket: any;
-let localStream: MediaStream;
-let peer: any;
-const localVideo = document.getElementById("localVideo") as HTMLVideoElement;
-const remoteVideo = document.getElementById("remoteVideo") as HTMLVideoElement;
-
-const initSocket = async () => {
-    const response = await fetch('/api/config');
-    const config = await response.json();
-    socket = (window as any).io(config.PATH);
-
-    socket.on("signal", (data: { from: string, signal: any }) => {
-        console.log("Signal received from:", data.from);
-        if (!peer) {
-            createPeer(false, data.from);
-        }
-        peer.signal(data.signal);
-    });
-
-    return socket;
+interface PeerConnection {
+    connection: RTCPeerConnection;
+    socketId: string;
 }
 
-const getMedia = async () => {
+interface ServerConfig {
+    PATH: string;
+}
+
+interface SocketData {
+    from: string;
+    offer?: RTCSessionDescriptionInit;
+    answer?: RTCSessionDescriptionInit;
+    candidate?: RTCIceCandidateInit;
+    roomId: string;
+}
+
+interface ViewerJoinedData {
+    socketId: string;
+    roomId: string;
+}
+
+let socket: any;
+const peerConnections = new Map<string, RTCPeerConnection>();
+let localStream: MediaStream;
+let currentRoomId: string | null = null;
+const config: RTCConfiguration = {
+    iceServers: [{ urls: 'stun:stun.l.google.com:19302' }]
+};
+
+const errorMessage = document.getElementById('errorMessage') as HTMLElement;
+const remoteVideo = document.getElementById('remoteVideo') as HTMLVideoElement;
+const localVideo = document.getElementById('localVideo') as HTMLVideoElement;
+const startButton = document.getElementById('startButton') as HTMLButtonElement;
+const stopButton = document.getElementById('stopButton') as HTMLButtonElement;
+const roomIdDisplay = document.getElementById('roomIdDisplay') as HTMLElement;
+const joinButton = document.getElementById('joinButton') as HTMLButtonElement;
+const leaveButton = document.getElementById('leaveButton') as HTMLButtonElement;
+const roomIdInput = document.getElementById('roomIdInput') as HTMLInputElement;
+
+
+
+async function initSocket(): Promise<void> {
     try {
-        localStream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
-        localVideo.srcObject = localStream;
+        console.log("----initSocket")
+        const response = await fetch('/api/config');
+        const config = await response.json();
+        socket = (window as any).io();
+        setupSocketListeners();
     } catch (error) {
-        console.error("Error accessing media devices.", error);
+        console.error('Socket initialization failed:', error);
+        throw error;
     }
 }
 
-const createPeer = async (isInitiator: boolean, remoteSocketId: string) => {
-    console.log("createPeer function", isInitiator, remoteSocketId);
-    peer = new (window as any).SimplePeer({
-        initiator: isInitiator,
-        stream: localStream,
-        trickle: false,
+function setupSocketListeners(): void {
+    console.log("setupSocketListeners----")
+    socket.on("offer", async (data: any) => {
+        console.log(" setupSocketListeners ---  offer data----", data)
+        console.log("currentRoomId---", currentRoomId)
+        if (currentRoomId === data.roomId) {
+            console.log("setupSocketListeners ---  offer iffff")
+            await handleOffer(data.from, data.offer);
+        }
     });
 
-    console.log("peer----", peer);
+    socket.on("answer", async (data: any) => {
+        console.log(" setupSocketListeners ---  answer data----", data)
 
-    peer.on("signal", (signal: any) => {
-        console.log("createPeer signal", signal);
-        socket.emit("signal", { to: remoteSocketId, signal });
+        const pc = peerConnections.get(data.from);
+        console.log("pc----",pc)
+        if (pc) await pc.setRemoteDescription(data.answer);
     });
 
-    peer.on("stream", (remoteStream: MediaStream) => {
-        console.log("createPeer stream", remoteStream);
-        remoteVideo.srcObject = remoteStream;
-    });
+    socket.on("ice-candidate", async (data: any) => {
+        console.log(" setupSocketListeners ---  ice-candidate data----", data)
 
-    peer.on("error", (err: Error) => console.error("Peer connection error:", err));
+        const pc = peerConnections.get(data.from);
+        console.log("pc----", pc)
+        if (pc) await pc.addIceCandidate(data.candidate);
+    });
 }
+
+async function getMedia(): Promise<MediaStream> {
+    try {
+        console.log("---getMedia")
+        localStream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
+        if (localVideo) localVideo.srcObject = localStream;
+        return localStream;
+    } catch (error) {
+        console.error("Error accessing media devices:", error);
+        throw error;
+    }
+}
+
+async function createPeerConnection(remoteSocketId: string, isInitiator: boolean) {
+    console.log("createPeerConnection-----")
+    const pc = new RTCPeerConnection(config);
+
+    if (localStream) {
+        localStream.getTracks().forEach(track => pc.addTrack(track, localStream));
+    }
+
+    pc.onicecandidate = (event) => {
+        console.log("pc.onicecandidate----", event.candidate)
+        if (event.candidate) {
+            console.log("pc.onicecandidate----event.candidate")
+
+            socket.emit("ice-candidate", { to: remoteSocketId, candidate: event.candidate, roomId: currentRoomId });
+        }
+    };
+
+    pc.ontrack = (event) => {
+        console.log("pc.ontrack----", remoteVideo)
+
+        if (remoteVideo) remoteVideo.srcObject = event.streams[0];
+    };
+
+    peerConnections.set(remoteSocketId, pc);
+
+    if (isInitiator) {
+        console.log("if.isInitiator----", isInitiator)
+
+        const offer = await pc.createOffer();
+        await pc.setLocalDescription(offer);
+        socket.emit("offer", { to: remoteSocketId, offer, roomId: currentRoomId });
+    }
+    return pc;
+}
+
+async function handleOffer(remoteSocketId: string, offer: RTCSessionDescriptionInit) {
+    console.log("handleOffer-----")
+    const pc = await createPeerConnection(remoteSocketId, false);
+    await pc.setRemoteDescription(offer);
+    const answer = await pc.createAnswer();
+    await pc.setLocalDescription(answer);
+    socket.emit("answer", { to: remoteSocketId, answer, roomId: currentRoomId });
+}
+
+async function createRoom(): Promise<string> {
+    console.log("----createRoom")
+    currentRoomId = Math.random().toString(36).substring(2, 9);
+    socket.emit("create-room", currentRoomId);
+    return currentRoomId;
+}
+
+async function joinRoom(roomId: string): Promise<void> {
+    console.log("joinRoom------");
+    currentRoomId = roomId;
+    socket.emit("join-room", roomId);
+}
+
+async function handleNewViewer(data: any): Promise<void> {
+    console.log("handleNewViewer-----", data)
+    console.log("currentRoomId---", currentRoomId);
+    if (currentRoomId === data.roomId) {
+        await createPeerConnection(data.socketId, true);
+    }
+}
+
+function cleanup(): void {
+    console.log("cleanup------")
+    if (localStream) localStream.getTracks().forEach(track => track.stop());
+    if (localVideo) localVideo.srcObject = null;
+    if (remoteVideo) remoteVideo.srcObject = null;
+    peerConnections.forEach(pc => pc.close());
+    peerConnections.clear();
+    if (currentRoomId) {
+        console.log("currentRoomId----")
+        socket.emit("leave-room", currentRoomId);
+        currentRoomId = null;
+    }
+}
+
+function getCurrentRoomId(): string | null {
+    console.log("getCurrentRoomId----")
+    return currentRoomId;
+}
+
+const showError = (message: string) => {
+    console.log("Show error message:", message);
+    errorMessage.textContent = message;
+    errorMessage.style.display = "block";
+    setTimeout(() => {
+        errorMessage.style.display = "none";
+    }, 3000);
+};
+

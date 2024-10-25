@@ -51,19 +51,27 @@
 
     <!-- Header section for buttons -->
     <div class="header">
+        <input type="text" id="roomIdInput" placeholder="Enter Broadcast ID">
         <button id="joinButton">Join</button>
-        <button id="cancelButton" disabled>Stop</button>
+        <button id="leaveButton" disabled>Leave</button>
     </div>
     <video id="localVideo" autoplay muted></video>
     <video id="remoteVideo" autoplay></video>
-    <!-- <script src="https://cdn.socket.io/4.5.4/socket.io.min.js"></script>
-    <script src="https://unpkg.com/simple-peer/simplepeer.min.js"></script>
-    <script src="/public/broadcast.js"></script> -->
 
     <script src="https://cdn.socket.io/4.5.4/socket.io.min.js"></script>
     <script src="https://unpkg.com/simple-peer/simplepeer.min.js"></script>
+    <div id="errorMessage" style="display: none;"></div>
     <script src="/public/common.js"></script>
     <script src="/public/viewer.js"></script>
+
+
+    <!-- <video id="remoteVideo" autoplay playsinline></video>
+   
+    <button id="joinButton">Join Broadcast</button>
+    <button id="leaveButton" disabled>Leave Broadcast</button>
+    <div id="errorMessage" style="display: none;"></div> -->
+    <!-- <script src="/socket.io/socket.io.js"></script> -->
+    <!-- <script type="module" src="viewer.js"></script> -->
  
 </body>
 </html>

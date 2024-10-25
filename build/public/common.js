@@ -9,47 +9,164 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
     });
 };
 let socket;
+const peerConnections = new Map();
 let localStream;
-let peer;
-const localVideo = document.getElementById("localVideo");
-const remoteVideo = document.getElementById("remoteVideo");
-const initSocket = () => __awaiter(void 0, void 0, void 0, function* () {
-    const response = yield fetch('/api/config');
-    const config = yield response.json();
-    socket = window.io(config.PATH);
-    socket.on("signal", (data) => {
-        console.log("Signal received from:", data.from);
-        if (!peer) {
-            createPeer(false, data.from);
+let currentRoomId = null;
+const config = {
+    iceServers: [{ urls: 'stun:stun.l.google.com:19302' }]
+};
+const errorMessage = document.getElementById('errorMessage');
+const remoteVideo = document.getElementById('remoteVideo');
+const localVideo = document.getElementById('localVideo');
+const startButton = document.getElementById('startButton');
+const stopButton = document.getElementById('stopButton');
+const roomIdDisplay = document.getElementById('roomIdDisplay');
+const joinButton = document.getElementById('joinButton');
+const leaveButton = document.getElementById('leaveButton');
+const roomIdInput = document.getElementById('roomIdInput');
+function initSocket() {
+    return __awaiter(this, void 0, void 0, function* () {
+        try {
+            console.log("----initSocket");
+            const response = yield fetch('/api/config');
+            const config = yield response.json();
+            socket = window.io();
+            setupSocketListeners();
         }
-        peer.signal(data.signal);
+        catch (error) {
+            console.error('Socket initialization failed:', error);
+            throw error;
+        }
     });
-    return socket;
-});
-const getMedia = () => __awaiter(void 0, void 0, void 0, function* () {
-    try {
-        localStream = yield navigator.mediaDevices.getUserMedia({ video: true, audio: true });
-        localVideo.srcObject = localStream;
+}
+function setupSocketListeners() {
+    console.log("setupSocketListeners----");
+    socket.on("offer", (data) => __awaiter(this, void 0, void 0, function* () {
+        console.log(" setupSocketListeners ---  offer data----", data);
+        console.log("currentRoomId---", currentRoomId);
+        if (currentRoomId === data.roomId) {
+            console.log("setupSocketListeners ---  offer iffff");
+            yield handleOffer(data.from, data.offer);
+        }
+    }));
+    socket.on("answer", (data) => __awaiter(this, void 0, void 0, function* () {
+        console.log(" setupSocketListeners ---  answer data----", data);
+        const pc = peerConnections.get(data.from);
+        console.log("pc----", pc);
+        if (pc)
+            yield pc.setRemoteDescription(data.answer);
+    }));
+    socket.on("ice-candidate", (data) => __awaiter(this, void 0, void 0, function* () {
+        console.log(" setupSocketListeners ---  ice-candidate data----", data);
+        const pc = peerConnections.get(data.from);
+        console.log("pc----", pc);
+        if (pc)
+            yield pc.addIceCandidate(data.candidate);
+    }));
+}
+function getMedia() {
+    return __awaiter(this, void 0, void 0, function* () {
+        try {
+            console.log("---getMedia");
+            localStream = yield navigator.mediaDevices.getUserMedia({ video: true, audio: true });
+            if (localVideo)
+                localVideo.srcObject = localStream;
+            return localStream;
+        }
+        catch (error) {
+            console.error("Error accessing media devices:", error);
+            throw error;
+        }
+    });
+}
+function createPeerConnection(remoteSocketId, isInitiator) {
+    return __awaiter(this, void 0, void 0, function* () {
+        console.log("createPeerConnection-----");
+        const pc = new RTCPeerConnection(config);
+        if (localStream) {
+            localStream.getTracks().forEach(track => pc.addTrack(track, localStream));
+        }
+        pc.onicecandidate = (event) => {
+            console.log("pc.onicecandidate----", event.candidate);
+            if (event.candidate) {
+                console.log("pc.onicecandidate----event.candidate");
+                socket.emit("ice-candidate", { to: remoteSocketId, candidate: event.candidate, roomId: currentRoomId });
+            }
+        };
+        pc.ontrack = (event) => {
+            console.log("pc.ontrack----", remoteVideo);
+            if (remoteVideo)
+                remoteVideo.srcObject = event.streams[0];
+        };
+        peerConnections.set(remoteSocketId, pc);
+        if (isInitiator) {
+            console.log("if.isInitiator----", isInitiator);
+            const offer = yield pc.createOffer();
+            yield pc.setLocalDescription(offer);
+            socket.emit("offer", { to: remoteSocketId, offer, roomId: currentRoomId });
+        }
+        return pc;
+    });
+}
+function handleOffer(remoteSocketId, offer) {
+    return __awaiter(this, void 0, void 0, function* () {
+        console.log("handleOffer-----");
+        const pc = yield createPeerConnection(remoteSocketId, false);
+        yield pc.setRemoteDescription(offer);
+        const answer = yield pc.createAnswer();
+        yield pc.setLocalDescription(answer);
+        socket.emit("answer", { to: remoteSocketId, answer, roomId: currentRoomId });
+    });
+}
+function createRoom() {
+    return __awaiter(this, void 0, void 0, function* () {
+        console.log("----createRoom");
+        currentRoomId = Math.random().toString(36).substring(2, 9);
+        socket.emit("create-room", currentRoomId);
+        return currentRoomId;
+    });
+}
+function joinRoom(roomId) {
+    return __awaiter(this, void 0, void 0, function* () {
+        console.log("joinRoom------");
+        currentRoomId = roomId;
+        socket.emit("join-room", roomId);
+    });
+}
+function handleNewViewer(data) {
+    return __awaiter(this, void 0, void 0, function* () {
+        console.log("handleNewViewer-----", data);
+        console.log("currentRoomId---", currentRoomId);
+        if (currentRoomId === data.roomId) {
+            yield createPeerConnection(data.socketId, true);
+        }
+    });
+}
+function cleanup() {
+    console.log("cleanup------");
+    if (localStream)
+        localStream.getTracks().forEach(track => track.stop());
+    if (localVideo)
+        localVideo.srcObject = null;
+    if (remoteVideo)
+        remoteVideo.srcObject = null;
+    peerConnections.forEach(pc => pc.close());
+    peerConnections.clear();
+    if (currentRoomId) {
+        console.log("currentRoomId----");
+        socket.emit("leave-room", currentRoomId);
+        currentRoomId = null;
     }
-    catch (error) {
-        console.error("Error accessing media devices.", error);
-    }
-});
-const createPeer = (isInitiator, remoteSocketId) => __awaiter(void 0, void 0, void 0, function* () {
-    console.log("createPeer function", isInitiator, remoteSocketId);
-    peer = new window.SimplePeer({
-        initiator: isInitiator,
-        stream: localStream,
-        trickle: false,
-    });
-    console.log("peer----", peer);
-    peer.on("signal", (signal) => {
-        console.log("createPeer signal", signal);
-        socket.emit("signal", { to: remoteSocketId, signal });
-    });
-    peer.on("stream", (remoteStream) => {
-        console.log("createPeer stream", remoteStream);
-        remoteVideo.srcObject = remoteStream;
-    });
-    peer.on("error", (err) => console.error("Peer connection error:", err));
-});
+}
+function getCurrentRoomId() {
+    console.log("getCurrentRoomId----");
+    return currentRoomId;
+}
+const showError = (message) => {
+    console.log("Show error message:", message);
+    errorMessage.textContent = message;
+    errorMessage.style.display = "block";
+    setTimeout(() => {
+        errorMessage.style.display = "none";
+    }, 3000);
+};

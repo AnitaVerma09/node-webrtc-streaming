@@ -1,45 +1,63 @@
 document.addEventListener("DOMContentLoaded", async () => {
-    const joinButton = document.getElementById('joinButton') as HTMLButtonElement;
-    const cancelButton = document.getElementById('cancelButton') as HTMLButtonElement;
-
-    if (!joinButton) {
-        console.error("Join button not found. This might not be the viewer page.");
+    try {
+        console.log("Viewer initializing socket...");
+        await initSocket();
+    } catch (error) {
+        console.error("Failed to initialize WebRTC:", error);
+        showError("Failed to initialize connection");
         return;
     }
 
-    // Initialize socket
-    await initSocket();
-
-    function toggleButtons() {
+    const toggleButtons = () => {
         joinButton.disabled = !joinButton.disabled;
-        cancelButton.disabled = !cancelButton.disabled;
+        leaveButton.disabled = !leaveButton.disabled;
     }
 
-    joinButton.addEventListener('click', () => {
+    joinButton.addEventListener("click", async () => {
         console.log("Join button clicked");
-        socket.emit("join");
-        toggleButtons();
-    });
-
-    cancelButton.addEventListener('click', () => {
-        console.log("Cancel button clicked");
-        cancelBroadcast();
-        toggleButtons();
-    });
-
-    socket.on("new-peer", (remoteSocketId: string) => {
-        console.log("New peer connected:", remoteSocketId);
-        createPeer(false, remoteSocketId);
-    });
-
-    function cancelBroadcast() {
-        // Clean up local peer if it exists
-        if (peer) {
-            peer.destroy(); // Destroy only the viewer's peer connection
-            peer = null;    // Reset peer variable
+        const roomId = roomIdInput.value.trim();
+        console.log("Room ID:", roomId);
+        if (!roomId) {
+            showError("Please enter a broadcast ID");
+            return;
         }
-        // Clear the remote video stream for this viewer
-        remoteVideo.srcObject = null;
-    }
+        try {
+            await joinRoom(roomId);
+            toggleButtons();
+            roomIdInput.disabled = true;
+        } catch (error) {
+            showError("Failed to join broadcast");
+            console.error("Error joining broadcast:", error);
+        }
+    });
 
+    leaveButton.addEventListener("click", () => {
+        console.log("Leave button clicked");
+        cleanup();
+        toggleButtons();
+        // joinButton.disabled = false;
+        // leaveButton.disabled = true;
+        roomIdInput.disabled = false;
+        roomIdInput.value = "";
+    });
+
+    socket.on("room-not-found", () => {
+        console.log("Room not found");
+        showError("Broadcast not found. Please check the ID.");
+        toggleButtons();
+        // joinButton.disabled = false;
+        // leaveButton.disabled = true;
+        roomIdInput.disabled = false;
+    });
+
+    socket.on("broadcaster-left", () => {
+        console.log("Broadcaster left");
+        cleanup();
+        showError("Broadcast ended.");
+        toggleButtons();
+        // joinButton.disabled = false;
+        // leaveButton.disabled = true;
+        roomIdInput.disabled = false;
+    });
 });
+
