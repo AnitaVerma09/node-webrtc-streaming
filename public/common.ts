@@ -43,8 +43,8 @@ const roomIdInput = document.getElementById('roomIdInput') as HTMLInputElement;
 async function initSocket(): Promise<void> {
     try {
         console.log("----initSocket")
-        const response = await fetch('/api/config');
-        const config = await response.json();
+        // const response = await fetch('/api/config');
+        // const config = await response.json();
         socket = (window as any).io();
         setupSocketListeners();
     } catch (error) {
@@ -127,7 +127,7 @@ async function createPeerConnection(remoteSocketId: string, isInitiator: boolean
     }
     return pc;
 }
-
+     
 async function handleOffer(remoteSocketId: string, offer: RTCSessionDescriptionInit) {
     console.log("handleOffer-----")
     const pc = await createPeerConnection(remoteSocketId, false);

@@ -28,8 +28,8 @@ function initSocket() {
     return __awaiter(this, void 0, void 0, function* () {
         try {
             console.log("----initSocket");
-            const response = yield fetch('/api/config');
-            const config = yield response.json();
+            // const response = await fetch('/api/config');
+            // const config = await response.json();
             socket = window.io();
             setupSocketListeners();
         }
