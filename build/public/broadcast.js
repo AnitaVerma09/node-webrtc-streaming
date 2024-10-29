@@ -8,6 +8,9 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
         step((generator = generator.apply(thisArg, _arguments || [])).next());
     });
 };
+const preStream = document.getElementById('preStream');
+const videoContainer = document.getElementById('videoContainer');
+const broadcastId = document.getElementById('broadcastId');
 // broadcaster.ts
 document.addEventListener("DOMContentLoaded", () => __awaiter(void 0, void 0, void 0, function* () {
     // const webRTCService = createWebRTCService(localVideo, null); // Use the function instead of class
@@ -19,29 +22,37 @@ document.addEventListener("DOMContentLoaded", () => __awaiter(void 0, void 0, vo
         console.error("Failed to initialize WebRTC:", error);
         return;
     }
-    const toggleButtons = () => {
-        startButton.disabled = !startButton.disabled;
-        stopButton.disabled = !stopButton.disabled;
-    };
+    // const toggleButtons = () => {
+    //     startButton.disabled = !startButton.disabled;
+    //     stopButton.disabled = !stopButton.disabled;
+    // }
     startButton.addEventListener("click", () => __awaiter(void 0, void 0, void 0, function* () {
         try {
             console.log("Start button clicked");
             yield getMedia();
+            // Hide pre-stream content and show video container
+            preStream.style.display = 'none';
+            videoContainer.classList.add('active');
+            broadcastId.classList.add('active');
             const roomId = yield createRoom();
-            roomIdDisplay.textContent = `Broadcast ID: ${roomId}`;
-            console.log("roomIdDisplay--");
-            toggleButtons();
+            broadcastId.textContent = `Broadcast ID: ${roomId}`;
+            // roomIdDisplay.textContent = `Broadcast ID: ${roomId}`;
+            // console.log("roomIdDisplay--");
+            // toggleButtons();
         }
         catch (error) {
             console.error("Error starting broadcast:", error);
-            roomIdDisplay.textContent = "Failed to start broadcast";
+            broadcastId.textContent = "Failed to start broadcast";
         }
     }));
     stopButton.addEventListener("click", () => {
         console.log("Stop button clicked");
         cleanup();
-        roomIdDisplay.textContent = "";
-        toggleButtons();
+        // preStream.style.display = 'flex';
+        // videoContainer.classList.remove('active');
+        // broadcastId.classList.remove('active');
+        broadcastId.textContent = "";
+        // toggleButtons();
     });
     // Handle viewer connections
     socket.on("viewer-joined", (data) => __awaiter(void 0, void 0, void 0, function* () {

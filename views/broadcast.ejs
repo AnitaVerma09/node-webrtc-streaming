@@ -2,6 +2,222 @@
 <html lang="en">
 
 <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>WebRTC Live Streaming</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Inter', sans-serif;
+        }
+
+        body {
+            min-height: 100vh;
+            background-color: rgb(245, 243, 255);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 4rem 1rem;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 64rem;
+            margin: 0 auto;
+            text-align: center;
+        }
+
+        h1 {
+            font-size: 2.5rem;
+            font-weight: 700;
+            color: #5B21B6;
+            margin-bottom: 0.75rem;
+        }
+
+        .subtitle {
+            font-size: 1.25rem;
+            color: #7C3AED;
+            margin-bottom: 3rem;
+        }
+
+        .card {
+            background: white;
+            border-radius: 1rem;
+            padding: 2rem;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+        }
+
+        .stream-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .pre-stream {
+            min-height: 300px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .camera-icon {
+            width: 3rem;
+            height: 3rem;
+            color: #7C3AED;
+            margin-bottom: 1.5rem;
+        }
+
+        .button {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+            padding: 1.5rem 2rem;
+            font-size: 1.125rem;
+            font-weight: 500;
+            color: white;
+            background-color: #7C3AED;
+            border: none;
+            border-radius: 0.5rem;
+            cursor: pointer;
+            transition: background-color 0.2s;
+        }
+
+        .button:hover {
+            background-color: #6D28D9;
+        }
+
+        .button.stop {
+            background-color: #DC2626;
+            padding: 0.75rem 1.5rem;
+        }
+
+        .button.stop:hover {
+            background-color: #B91C1C;
+        }
+
+        .button-hint {
+            font-size: 0.875rem;
+            color: #6B7280;
+            margin-top: 0.5rem;
+        }
+
+        .video-container {
+            display: none;
+            width: 100%;
+            gap: 1rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .video-container.active {
+            display: flex;
+            flex-wrap: wrap;
+        }
+
+        video {
+            width: 100%;
+            aspect-ratio: 16/9;
+            background: #111827;
+            border-radius: 0.5rem;
+        }
+
+        .broadcast-id {
+            display: none;
+            width: 100%;
+            padding: 1rem;
+            margin-top: 1.5rem;
+            background: #F9FAFB;
+            border-radius: 0.5rem;
+            font-size: 1.125rem;
+            color: #4B5563;
+            font-weight: 500;
+        }
+
+        .broadcast-id.active {
+            display: block;
+        }
+
+        .footer-text {
+            color: #7C3AED;
+            font-size: 0.875rem;
+            margin-top: 2rem;
+        }
+
+        @media (min-width: 768px) {
+            video {
+                width: calc(50% - 0.5rem);
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <h1>WebRTC Live Streaming</h1>
+        <p class="subtitle">Connect and stream in real-time</p>
+
+        <div class="card">
+            <div class="stream-container">
+                <div class="pre-stream" id="preStream">
+                    <svg class="camera-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" />
+                    </svg>
+                    <div>
+                        <button class="button" id="startButton">
+                            <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" />
+                            </svg>
+                            Broadcast Stream
+                        </button>
+                        <p class="button-hint">Start broadcasting your live stream</p>
+                    </div>
+                </div>
+
+                <div class="video-container" id="videoContainer">
+                    <video id="localVideo" autoplay muted></video>
+                    <video id="remoteVideo" autoplay></video>
+                    <button class="button stop" id="stopButton">End Stream</button>
+                </div>
+
+                <div class="broadcast-id" id="broadcastId">
+                    Broadcast ID: Not started
+                </div>
+            </div>
+        </div>
+
+        <p class="footer-text">
+            Built with WebRTC technology for high-quality, real-time communication
+        </p>
+    </div>
+    
+    <script src="https://cdn.socket.io/4.5.4/socket.io.min.js"></script>
+    <script src="https://unpkg.com/simple-peer/simplepeer.min.js"></script>
+    <script src="/public/common.js"></script>
+    <script src="/public/broadcast.js"></script>
+</body>
+</html>
+
+
+
+
+
+
+
+
+
+
+
+
+<!-- <!DOCTYPE html>
+<html lang="en">
+
+<head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>WebRTC Live Streaming</title>
@@ -56,15 +272,15 @@
 <body>
     <h1>Broadcast Page</h1>
 
-    <!-- Header section for buttons -->
-    <div class="header">
+    Header section for buttons -->
+<!-- <div class="header">
         <button id="startButton">Start</button>
         <button id="stopButton" disabled>Stop</button>
     </div>
     <video id="localVideo" autoplay muted></video>
     <video id="remoteVideo" autoplay></video>
-    <!-- Room ID display element -->
-    <div class="room-id" id="roomIdDisplay">Broadcast ID: Not started</div>
+     Room ID display element -->
+<!-- <div class="room-id" id="roomIdDisplay">Broadcast ID: Not started</div>
 
     <script src="https://cdn.socket.io/4.5.4/socket.io.min.js"></script>
     <script src="https://unpkg.com/simple-peer/simplepeer.min.js"></script>
@@ -72,4 +288,4 @@
     <script src="/public/broadcast.js"></script>
 
 </body>
-</html>
+</html>  -->

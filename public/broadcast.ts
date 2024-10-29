@@ -4,6 +4,9 @@ interface ViewerJoinedData {
     roomId: string;
 }
 
+const preStream = document.getElementById('preStream') as HTMLElement ;
+const videoContainer = document.getElementById('videoContainer') as HTMLVideoElement;
+const broadcastId = document.getElementById('broadcastId') as HTMLElement ;
 
 
 // broadcaster.ts
@@ -19,30 +22,41 @@ document.addEventListener("DOMContentLoaded", async () => {
         return;
     }
 
-    const toggleButtons = () => {
-        startButton.disabled = !startButton.disabled;
-        stopButton.disabled = !stopButton.disabled;
-    }
+    // const toggleButtons = () => {
+    //     startButton.disabled = !startButton.disabled;
+    //     stopButton.disabled = !stopButton.disabled;
+    // }
 
     startButton.addEventListener("click", async () => {
         try {
             console.log("Start button clicked");
             await getMedia();
+
+            // Hide pre-stream content and show video container
+            preStream.style.display = 'none';
+            videoContainer.classList.add('active');
+            broadcastId.classList.add('active');
+            
             const roomId = await createRoom();
-            roomIdDisplay.textContent = `Broadcast ID: ${roomId}`;
-            console.log("roomIdDisplay--");
-            toggleButtons();
+            broadcastId.textContent = `Broadcast ID: ${roomId}`;
+            // roomIdDisplay.textContent = `Broadcast ID: ${roomId}`;
+            // console.log("roomIdDisplay--");
+            // toggleButtons();
         } catch (error) {
             console.error("Error starting broadcast:", error);
-            roomIdDisplay.textContent = "Failed to start broadcast";
+            broadcastId.textContent = "Failed to start broadcast";
         }
     });
+
 
     stopButton.addEventListener("click", () => {
         console.log("Stop button clicked");
         cleanup();
-        roomIdDisplay.textContent = "";
-        toggleButtons();
+        // preStream.style.display = 'flex';
+        // videoContainer.classList.remove('active');
+        // broadcastId.classList.remove('active');
+        broadcastId.textContent = "";
+        // toggleButtons();
     });
 
     // Handle viewer connections

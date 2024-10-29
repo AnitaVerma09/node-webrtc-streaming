@@ -4,6 +4,197 @@
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>WebRTC Live Streaming - Viewer Page</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/tailwindcss/2.2.19/tailwind.min.css" rel="stylesheet">
+    <style>
+        body {
+            background: linear-gradient(135deg, #f5f3ff 0%, #ede9fe 100%);
+            min-height: 100vh;
+            font-family: system-ui, -apple-system, sans-serif;
+        }
+
+        .video-container {
+            background: #fff;
+            border-radius: 0.75rem;
+            overflow: hidden;
+            aspect-ratio: 16/9;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+            display: none;
+            /* Hidden by default */
+        }
+
+        .video-container.active {
+            display: block;
+            /* Shown when stream is active */
+        }
+
+        video {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .input-field {
+            background: white;
+            border: 2px solid #e5e7eb;
+            border-radius: 0.5rem;
+            padding: 0.625rem 1rem;
+            font-size: 1rem;
+            transition: all 0.2s;
+            width: 100%;
+            max-width: 300px;
+        }
+
+        .input-field:focus {
+            outline: none;
+            border-color: #6d28d9;
+            box-shadow: 0 0 0 3px rgba(109, 40, 217, 0.1);
+        }
+
+        .button {
+            background: #6d28d9;
+            color: white;
+            padding: 0.625rem 1.25rem;
+            border-radius: 0.5rem;
+            font-weight: 500;
+            transition: all 0.2s;
+            border: none;
+        }
+
+        .button:hover:not(:disabled) {
+            background: #5b21b6;
+            transform: translateY(-1px);
+        }
+
+        .button:disabled {
+            background: #9ca3af;
+            cursor: not-allowed;
+        }
+
+        .welcome-screen {
+            background: white;
+            border-radius: 1rem;
+            padding: 2rem;
+            text-align: center;
+            max-width: 500px;
+            margin: 2rem auto;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+        }
+
+        .status-badge {
+            display: inline-flex;
+            align-items: center;
+            padding: 0.5rem 1rem;
+            border-radius: 9999px;
+            font-size: 0.875rem;
+            font-weight: 500;
+        }
+
+        .status-badge.connecting {
+            background-color: #fef3c7;
+            color: #92400e;
+        }
+
+        .status-badge.connected {
+            background-color: #dcfce7;
+            color: #166534;
+        }
+
+        .error-message {
+            background: #fee2e2;
+            border: 1px solid #ef4444;
+            color: #991b1b;
+            padding: 1rem;
+            border-radius: 0.5rem;
+            margin-top: 1rem;
+            display: none;
+        }
+    </style>
+</head>
+
+<body class="p-4 md:p-8">
+    <main class="max-w-6xl mx-auto">
+        <div class="text-center mb-8">
+            <h1 class="text-3xl md:text-4xl font-bold text-[#4c1d95] mb-2">Live Stream Viewer</h1>
+            <p class="text-[#6b7280]">Join and watch live broadcasts in real-time</p>
+        </div>
+
+        <!-- Pre-join welcome screen -->
+        <div id="welcomeScreen" class="welcome-screen">
+            <svg class="w-16 h-16 mx-auto mb-4 text-[#6d28d9]" xmlns="http://www.w3.org/2000/svg" fill="none"
+                viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                    d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" />
+            </svg>
+            <h2 class="text-2xl font-semibold mb-4">Join a Live Stream</h2>
+            <p class="text-[#6b7280] mb-6">Enter a broadcast ID to join an existing live stream</p>
+
+            <div class="flex flex-col md:flex-row items-center justify-center gap-4">
+                <input type="text" id="roomIdInput" class="input-field" placeholder="Enter Broadcast ID">
+                <button id="joinButton" class="button">
+                    Join Stream
+                </button>
+            </div>
+        </div>
+
+        <!-- Stream viewer interface (hidden by default) -->
+        <div id="streamInterface" class="hidden">
+            <div class="bg-white p-6 rounded-xl shadow-md mb-8">
+                <div class="flex items-center justify-between">
+                    <div class="status-badge connected">
+                        <span class="mr-2">●</span> Connected to stream
+                    </div>
+                    <button id="leaveButton" class="button" disabled>
+                        Leave Stream
+                    </button>
+                </div>
+            </div>
+
+            <div class="video-container active">
+                <video id="remoteVideo" autoplay></video>
+            </div>
+        </div>
+
+        <div id="errorMessage" class="error-message">
+            <!-- Error messages will appear here -->
+        </div>
+
+        <footer class="text-center mt-8 text-sm text-[#6b7280]">
+            <p>Built with WebRTC technology for high-quality, real-time streaming</p>
+        </footer>
+    </main>
+
+    <script src="https://cdn.socket.io/4.5.4/socket.io.min.js"></script>
+    <script src="https://unpkg.com/simple-peer/simplepeer.min.js"></script>
+    <script src="/public/common.js"></script>
+    <script src="/public/viewer.js"></script>
+    <script>
+        // Add this to your existing JavaScript
+        document.getElementById('joinButton').addEventListener('click', function () {
+            document.getElementById('welcomeScreen').style.display = 'none';
+            document.getElementById('streamInterface').style.display = 'block';
+            // Your existing join logic here
+        });
+
+        document.getElementById('leaveButton').addEventListener('click', function () {
+            document.getElementById('welcomeScreen').style.display = 'block';
+            document.getElementById('streamInterface').style.display = 'none';
+            // Your existing leave logic here
+        });
+    </script>
+</body>
+
+</html>
+
+
+
+
+<!-- <!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>WebRTC Live Streaming</title>
     <style>
         body {
@@ -49,8 +240,8 @@
 <body>
     <h1>Viewer Page</h1>
 
-    <!-- Header section for buttons -->
-    <div class="header">
+    Header section for buttons -->
+    <!-- <div class="header">
         <input type="text" id="roomIdInput" placeholder="Enter Broadcast ID">
         <button id="joinButton">Join</button>
         <button id="leaveButton" disabled>Leave</button>
@@ -65,4 +256,4 @@
     <script src="/public/viewer.js"></script>
  
 </body>
-</html>
+</html> -->
