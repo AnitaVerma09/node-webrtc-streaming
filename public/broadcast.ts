@@ -33,7 +33,7 @@ document.addEventListener("DOMContentLoaded", async () => {
             await getMedia();
 
             // Hide pre-stream content and show video container
-            preStream.style.display = 'none';
+            preStream.classList.add('hidden');
             videoContainer.classList.add('active');
             broadcastId.classList.add('active');
             
@@ -48,14 +48,17 @@ document.addEventListener("DOMContentLoaded", async () => {
         }
     });
 
-
     stopButton.addEventListener("click", () => {
         console.log("Stop button clicked");
         cleanup();
+        preStream.classList.remove('hidden');
+        videoContainer.classList.remove('active');
+        broadcastId.classList.remove('active');
+        broadcastId.textContent = 'Broadcast ID: Not started';
         // preStream.style.display = 'flex';
         // videoContainer.classList.remove('active');
         // broadcastId.classList.remove('active');
-        broadcastId.textContent = "";
+        // broadcastId.textContent = "";
         // toggleButtons();
     });
 

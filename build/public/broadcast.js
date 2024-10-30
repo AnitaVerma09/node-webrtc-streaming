@@ -31,7 +31,7 @@ document.addEventListener("DOMContentLoaded", () => __awaiter(void 0, void 0, vo
             console.log("Start button clicked");
             yield getMedia();
             // Hide pre-stream content and show video container
-            preStream.style.display = 'none';
+            preStream.classList.add('hidden');
             videoContainer.classList.add('active');
             broadcastId.classList.add('active');
             const roomId = yield createRoom();
@@ -48,10 +48,14 @@ document.addEventListener("DOMContentLoaded", () => __awaiter(void 0, void 0, vo
     stopButton.addEventListener("click", () => {
         console.log("Stop button clicked");
         cleanup();
+        preStream.classList.remove('hidden');
+        videoContainer.classList.remove('active');
+        broadcastId.classList.remove('active');
+        broadcastId.textContent = 'Broadcast ID: Not started';
         // preStream.style.display = 'flex';
         // videoContainer.classList.remove('active');
         // broadcastId.classList.remove('active');
-        broadcastId.textContent = "";
+        // broadcastId.textContent = "";
         // toggleButtons();
     });
     // Handle viewer connections
