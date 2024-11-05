@@ -35,8 +35,6 @@ document.addEventListener("DOMContentLoaded", async () => {
         console.log("Leave button clicked");
         cleanup();
         toggleButtons();
-        // joinButton.disabled = false;
-        // leaveButton.disabled = true;
         roomIdInput.disabled = false;
         roomIdInput.value = "";
     });
@@ -45,8 +43,6 @@ document.addEventListener("DOMContentLoaded", async () => {
         console.log("Room not found");
         showError("Broadcast not found. Please check the ID.");
         toggleButtons();
-        // joinButton.disabled = false;
-        // leaveButton.disabled = true;
         roomIdInput.disabled = false;
     });
 
@@ -55,8 +51,6 @@ document.addEventListener("DOMContentLoaded", async () => {
         cleanup();
         showError("Broadcast ended.");
         toggleButtons();
-        // joinButton.disabled = false;
-        // leaveButton.disabled = true;
         roomIdInput.disabled = false;
     });
 });

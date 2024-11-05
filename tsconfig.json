@@ -10,21 +10,3 @@
   }
 }
 
-
-
-// {
-//   "compilerOptions": {
-//     "target": "ES6", // Use ES6 features
-//     "module": "commonjs", // Use CommonJS for compatibility
-//     "outDir": "./build", // Output compiled files here
-//     "esModuleInterop": true, // Enable ES6 to CommonJS interop
-//     "forceConsistentCasingInFileNames": true, // Enforce file name casing consistency
-//     "strict": true, // Enable strict type checking
-//     "skipLibCheck": true, // Skip type checking of declaration files
-//     "allowSyntheticDefaultImports": true, // Allow synthetic imports of default exports
-//     "resolveJsonModule": true, // Allow importing JSON files
-//     "moduleResolution": "node", // Use Node.js module resolution strategy
-//     "sourceMap": true // Generate source maps for debugging
-//   }
-// }
-

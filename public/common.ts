@@ -33,18 +33,14 @@ const remoteVideo = document.getElementById('remoteVideo') as HTMLVideoElement;
 const localVideo = document.getElementById('localVideo') as HTMLVideoElement;
 const startButton = document.getElementById('startButton') as HTMLButtonElement;
 const stopButton = document.getElementById('stopButton') as HTMLButtonElement;
-// const roomIdDisplay = document.getElementById('roomIdDisplay') as HTMLElement;
 const joinButton = document.getElementById('joinButton') as HTMLButtonElement;
 const leaveButton = document.getElementById('leaveButton') as HTMLButtonElement;
 const roomIdInput = document.getElementById('roomIdInput') as HTMLInputElement;
 
 
-
-async function initSocket(): Promise<void> {
+const initSocket = async (): Promise<void> => {
     try {
         console.log("----initSocket")
-        // const response = await fetch('/api/config');
-        // const config = await response.json();
         socket = (window as any).io();
         setupSocketListeners();
     } catch (error) {
@@ -53,7 +49,7 @@ async function initSocket(): Promise<void> {
     }
 }
 
-function setupSocketListeners(): void {
+const setupSocketListeners = async (): Promise<void> => {
     console.log("setupSocketListeners----")
     socket.on("offer", async (data: any) => {
         console.log(" setupSocketListeners ---  offer data----", data)
@@ -68,7 +64,7 @@ function setupSocketListeners(): void {
         console.log(" setupSocketListeners ---  answer data----", data)
 
         const pc = peerConnections.get(data.from);
-        console.log("pc----",pc)
+        console.log("pc----", pc)
         if (pc) await pc.setRemoteDescription(data.answer);
     });
 
@@ -81,7 +77,7 @@ function setupSocketListeners(): void {
     });
 }
 
-async function getMedia(): Promise<MediaStream> {
+const getMedia = async (): Promise<MediaStream> => {
     try {
         console.log("---getMedia")
         localStream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
@@ -93,7 +89,7 @@ async function getMedia(): Promise<MediaStream> {
     }
 }
 
-async function createPeerConnection(remoteSocketId: string, isInitiator: boolean) {
+const createPeerConnection = async (remoteSocketId: string, isInitiator: boolean) => {
     console.log("createPeerConnection-----")
     const pc = new RTCPeerConnection(config);
 
@@ -127,8 +123,8 @@ async function createPeerConnection(remoteSocketId: string, isInitiator: boolean
     }
     return pc;
 }
-     
-async function handleOffer(remoteSocketId: string, offer: RTCSessionDescriptionInit) {
+
+const handleOffer = async (remoteSocketId: string, offer: RTCSessionDescriptionInit) => {
     console.log("handleOffer-----")
     const pc = await createPeerConnection(remoteSocketId, false);
     await pc.setRemoteDescription(offer);
@@ -137,20 +133,20 @@ async function handleOffer(remoteSocketId: string, offer: RTCSessionDescriptionI
     socket.emit("answer", { to: remoteSocketId, answer, roomId: currentRoomId });
 }
 
-async function createRoom(): Promise<string> {
+const createRoom = async (): Promise<string> =>{
     console.log("----createRoom")
     currentRoomId = Math.random().toString(36).substring(2, 9);
     socket.emit("create-room", currentRoomId);
     return currentRoomId;
 }
 
-async function joinRoom(roomId: string): Promise<void> {
+const joinRoom = async (roomId: string): Promise<void>=> {
     console.log("joinRoom------");
     currentRoomId = roomId;
     socket.emit("join-room", roomId);
 }
 
-async function handleNewViewer(data: any): Promise<void> {
+const handleNewViewer = async (data: any): Promise<void>=> {
     console.log("handleNewViewer-----", data)
     console.log("currentRoomId---", currentRoomId);
     if (currentRoomId === data.roomId) {
@@ -158,7 +154,7 @@ async function handleNewViewer(data: any): Promise<void> {
     }
 }
 
-function cleanup(): void {
+const cleanup = (): void => {
     console.log("cleanup------")
     if (localStream) localStream.getTracks().forEach(track => track.stop());
     if (localVideo) localVideo.srcObject = null;
@@ -172,7 +168,7 @@ function cleanup(): void {
     }
 }
 
-function getCurrentRoomId(): string | null {
+const getCurrentRoomId = (): string | null => {
     console.log("getCurrentRoomId----")
     return currentRoomId;
 }

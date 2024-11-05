@@ -20,28 +20,23 @@ const remoteVideo = document.getElementById('remoteVideo');
 const localVideo = document.getElementById('localVideo');
 const startButton = document.getElementById('startButton');
 const stopButton = document.getElementById('stopButton');
-// const roomIdDisplay = document.getElementById('roomIdDisplay') as HTMLElement;
 const joinButton = document.getElementById('joinButton');
 const leaveButton = document.getElementById('leaveButton');
 const roomIdInput = document.getElementById('roomIdInput');
-function initSocket() {
-    return __awaiter(this, void 0, void 0, function* () {
-        try {
-            console.log("----initSocket");
-            // const response = await fetch('/api/config');
-            // const config = await response.json();
-            socket = window.io();
-            setupSocketListeners();
-        }
-        catch (error) {
-            console.error('Socket initialization failed:', error);
-            throw error;
-        }
-    });
-}
-function setupSocketListeners() {
+const initSocket = () => __awaiter(void 0, void 0, void 0, function* () {
+    try {
+        console.log("----initSocket");
+        socket = window.io();
+        setupSocketListeners();
+    }
+    catch (error) {
+        console.error('Socket initialization failed:', error);
+        throw error;
+    }
+});
+const setupSocketListeners = () => __awaiter(void 0, void 0, void 0, function* () {
     console.log("setupSocketListeners----");
-    socket.on("offer", (data) => __awaiter(this, void 0, void 0, function* () {
+    socket.on("offer", (data) => __awaiter(void 0, void 0, void 0, function* () {
         console.log(" setupSocketListeners ---  offer data----", data);
         console.log("currentRoomId---", currentRoomId);
         if (currentRoomId === data.roomId) {
@@ -49,100 +44,88 @@ function setupSocketListeners() {
             yield handleOffer(data.from, data.offer);
         }
     }));
-    socket.on("answer", (data) => __awaiter(this, void 0, void 0, function* () {
+    socket.on("answer", (data) => __awaiter(void 0, void 0, void 0, function* () {
         console.log(" setupSocketListeners ---  answer data----", data);
         const pc = peerConnections.get(data.from);
         console.log("pc----", pc);
         if (pc)
             yield pc.setRemoteDescription(data.answer);
     }));
-    socket.on("ice-candidate", (data) => __awaiter(this, void 0, void 0, function* () {
+    socket.on("ice-candidate", (data) => __awaiter(void 0, void 0, void 0, function* () {
         console.log(" setupSocketListeners ---  ice-candidate data----", data);
         const pc = peerConnections.get(data.from);
         console.log("pc----", pc);
         if (pc)
             yield pc.addIceCandidate(data.candidate);
     }));
-}
-function getMedia() {
-    return __awaiter(this, void 0, void 0, function* () {
-        try {
-            console.log("---getMedia");
-            localStream = yield navigator.mediaDevices.getUserMedia({ video: true, audio: true });
-            if (localVideo)
-                localVideo.srcObject = localStream;
-            return localStream;
+});
+const getMedia = () => __awaiter(void 0, void 0, void 0, function* () {
+    try {
+        console.log("---getMedia");
+        localStream = yield navigator.mediaDevices.getUserMedia({ video: true, audio: true });
+        if (localVideo)
+            localVideo.srcObject = localStream;
+        return localStream;
+    }
+    catch (error) {
+        console.error("Error accessing media devices:", error);
+        throw error;
+    }
+});
+const createPeerConnection = (remoteSocketId, isInitiator) => __awaiter(void 0, void 0, void 0, function* () {
+    console.log("createPeerConnection-----");
+    const pc = new RTCPeerConnection(config);
+    if (localStream) {
+        localStream.getTracks().forEach(track => pc.addTrack(track, localStream));
+    }
+    pc.onicecandidate = (event) => {
+        console.log("pc.onicecandidate----", event.candidate);
+        if (event.candidate) {
+            console.log("pc.onicecandidate----event.candidate");
+            socket.emit("ice-candidate", { to: remoteSocketId, candidate: event.candidate, roomId: currentRoomId });
         }
-        catch (error) {
-            console.error("Error accessing media devices:", error);
-            throw error;
-        }
-    });
-}
-function createPeerConnection(remoteSocketId, isInitiator) {
-    return __awaiter(this, void 0, void 0, function* () {
-        console.log("createPeerConnection-----");
-        const pc = new RTCPeerConnection(config);
-        if (localStream) {
-            localStream.getTracks().forEach(track => pc.addTrack(track, localStream));
-        }
-        pc.onicecandidate = (event) => {
-            console.log("pc.onicecandidate----", event.candidate);
-            if (event.candidate) {
-                console.log("pc.onicecandidate----event.candidate");
-                socket.emit("ice-candidate", { to: remoteSocketId, candidate: event.candidate, roomId: currentRoomId });
-            }
-        };
-        pc.ontrack = (event) => {
-            console.log("pc.ontrack----", remoteVideo);
-            if (remoteVideo)
-                remoteVideo.srcObject = event.streams[0];
-        };
-        peerConnections.set(remoteSocketId, pc);
-        if (isInitiator) {
-            console.log("if.isInitiator----", isInitiator);
-            const offer = yield pc.createOffer();
-            yield pc.setLocalDescription(offer);
-            socket.emit("offer", { to: remoteSocketId, offer, roomId: currentRoomId });
-        }
-        return pc;
-    });
-}
-function handleOffer(remoteSocketId, offer) {
-    return __awaiter(this, void 0, void 0, function* () {
-        console.log("handleOffer-----");
-        const pc = yield createPeerConnection(remoteSocketId, false);
-        yield pc.setRemoteDescription(offer);
-        const answer = yield pc.createAnswer();
-        yield pc.setLocalDescription(answer);
-        socket.emit("answer", { to: remoteSocketId, answer, roomId: currentRoomId });
-    });
-}
-function createRoom() {
-    return __awaiter(this, void 0, void 0, function* () {
-        console.log("----createRoom");
-        currentRoomId = Math.random().toString(36).substring(2, 9);
-        socket.emit("create-room", currentRoomId);
-        return currentRoomId;
-    });
-}
-function joinRoom(roomId) {
-    return __awaiter(this, void 0, void 0, function* () {
-        console.log("joinRoom------");
-        currentRoomId = roomId;
-        socket.emit("join-room", roomId);
-    });
-}
-function handleNewViewer(data) {
-    return __awaiter(this, void 0, void 0, function* () {
-        console.log("handleNewViewer-----", data);
-        console.log("currentRoomId---", currentRoomId);
-        if (currentRoomId === data.roomId) {
-            yield createPeerConnection(data.socketId, true);
-        }
-    });
-}
-function cleanup() {
+    };
+    pc.ontrack = (event) => {
+        console.log("pc.ontrack----", remoteVideo);
+        if (remoteVideo)
+            remoteVideo.srcObject = event.streams[0];
+    };
+    peerConnections.set(remoteSocketId, pc);
+    if (isInitiator) {
+        console.log("if.isInitiator----", isInitiator);
+        const offer = yield pc.createOffer();
+        yield pc.setLocalDescription(offer);
+        socket.emit("offer", { to: remoteSocketId, offer, roomId: currentRoomId });
+    }
+    return pc;
+});
+const handleOffer = (remoteSocketId, offer) => __awaiter(void 0, void 0, void 0, function* () {
+    console.log("handleOffer-----");
+    const pc = yield createPeerConnection(remoteSocketId, false);
+    yield pc.setRemoteDescription(offer);
+    const answer = yield pc.createAnswer();
+    yield pc.setLocalDescription(answer);
+    socket.emit("answer", { to: remoteSocketId, answer, roomId: currentRoomId });
+});
+const createRoom = () => __awaiter(void 0, void 0, void 0, function* () {
+    console.log("----createRoom");
+    currentRoomId = Math.random().toString(36).substring(2, 9);
+    socket.emit("create-room", currentRoomId);
+    return currentRoomId;
+});
+const joinRoom = (roomId) => __awaiter(void 0, void 0, void 0, function* () {
+    console.log("joinRoom------");
+    currentRoomId = roomId;
+    socket.emit("join-room", roomId);
+});
+const handleNewViewer = (data) => __awaiter(void 0, void 0, void 0, function* () {
+    console.log("handleNewViewer-----", data);
+    console.log("currentRoomId---", currentRoomId);
+    if (currentRoomId === data.roomId) {
+        yield createPeerConnection(data.socketId, true);
+    }
+});
+const cleanup = () => {
     console.log("cleanup------");
     if (localStream)
         localStream.getTracks().forEach(track => track.stop());
@@ -157,11 +140,11 @@ function cleanup() {
         socket.emit("leave-room", currentRoomId);
         currentRoomId = null;
     }
-}
-function getCurrentRoomId() {
+};
+const getCurrentRoomId = () => {
     console.log("getCurrentRoomId----");
     return currentRoomId;
-}
+};
 const showError = (message) => {
     console.log("Show error message:", message);
     errorMessage.textContent = message;
