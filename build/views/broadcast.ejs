@@ -54,6 +54,7 @@
             display: flex;
             flex-direction: column;
             align-items: center;
+            position: relative;
         }
 
         .pre-stream {
@@ -75,7 +76,7 @@
             margin-bottom: 1.5rem;
         }
 
-        .button {
+        .start-button {
             display: inline-flex;
             align-items: center;
             justify-content: center;
@@ -91,17 +92,8 @@
             transition: background-color 0.2s;
         }
 
-        .button:hover {
+        .start-button:hover {
             background-color: #6D28D9;
-        }
-
-        .button.stop {
-            background-color: #DC2626;
-            padding: 0.75rem 1.5rem;
-        }
-
-        .button.stop:hover {
-            background-color: #B91C1C;
         }
 
         .button-hint {
@@ -113,7 +105,7 @@
         .video-container {
             display: none;
             width: 100%;
-            margin-bottom: 1.5rem;
+            position: relative;
         }
 
         .video-container.active {
@@ -125,7 +117,62 @@
             aspect-ratio: 16/9;
             background: #111827;
             border-radius: 0.5rem;
-            margin-bottom: 1rem;
+        }
+
+        .stream-controls {
+            position: absolute;
+            bottom: 1rem;
+            left: 0;
+            right: 0;
+            display: none;
+            justify-content: center;
+            gap: 1rem;
+            padding: 0.5rem;
+            /* background: rgba(0, 0, 0, 0.5); */
+            border-radius: 0.5rem;
+            margin: 0 1rem;
+        }
+
+        .stream-controls.active {
+            display: flex;
+        }
+
+        .control-button {
+            background: transparent;
+            border: none;
+            cursor: pointer;
+            padding: 0.5rem;
+            border-radius: 0.25rem;
+            transition: all 0.2s;
+        }
+
+        .control-button:hover {
+            background: rgba(255, 255, 255, 0.1);
+        }
+
+        .control-button svg {
+            width: 1.5rem;
+            height: 1.5rem;
+            color: white;
+            transition: color 0.2s;
+        }
+
+        .control-button.muted svg {
+            color: #EF4444;
+        }
+
+        .end-stream {
+            background: #DC2626;
+            border: none;
+            color: white;
+            padding: 0.5rem 1rem;
+            border-radius: 0.25rem;
+            cursor: pointer;
+            font-weight: 500;
+        }
+
+        .end-stream:hover {
+            background: #B91C1C;
         }
 
         .broadcast-id {
@@ -165,12 +212,8 @@
                             d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" />
                     </svg>
                     <div>
-                        <button class="button" id="startButton">
-                            <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                    d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" />
-                            </svg>
-                            Broadcast Stream
+                        <button class="start-button" id="startButton">
+                            Start Broadcasting
                         </button>
                         <p class="button-hint">Start broadcasting your live stream</p>
                     </div>
@@ -178,7 +221,21 @@
 
                 <div class="video-container" id="videoContainer">
                     <video id="localVideo" autoplay muted></video>
-                    <button class="button stop" id="stopButton">End Stream</button>
+                    <div class="stream-controls" id="streamControls">
+                        <button class="control-button" id="toggleVideo" title="Toggle Camera">
+                            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" />
+                            </svg>
+                        </button>
+                        <button class="control-button" id="toggleAudio" title="Toggle Microphone">
+                            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0-11V3" />
+                            </svg>
+                        </button>
+                        <button class="end-stream" id="stopButton">End Stream</button>
+                    </div>
                 </div>
 
                 <div class="broadcast-id" id="broadcastId">
@@ -195,6 +252,7 @@
     <script src="https://unpkg.com/simple-peer/simplepeer.min.js"></script>
     <script src="/public/common.js"></script>
     <script src="/public/broadcast.js"></script>
+
 </body>
 
 </html>

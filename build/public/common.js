@@ -72,6 +72,35 @@ const getMedia = () => __awaiter(void 0, void 0, void 0, function* () {
         throw error;
     }
 });
+const toggleVideo = () => {
+    try {
+        if (localStream) {
+            const videoTrack = localStream.getVideoTracks()[0];
+            return videoTrack;
+        }
+    }
+    catch (error) {
+        console.error("Error on toggle video:", error);
+        throw error;
+    }
+    // if (localStream) {
+    //     const videoTrack = localStream.getVideoTracks()[0];
+    //     if (videoTrack) {
+    //         videoTrack.enabled = enabled;
+    //         console.log(`Video ${enabled ? "enabled" : "disabled"}`);
+    //     }
+    // }
+};
+const toggleAudio = () => {
+    if (localStream) {
+        const audioTrack = localStream.getAudioTracks()[0];
+        return audioTrack;
+        // if (audioTrack) {
+        //     audioTrack.enabled = enabled;
+        //     console.log(`Audio ${enabled ? "enabled" : "disabled"}`);
+        // }
+    }
+};
 const createPeerConnection = (remoteSocketId, isInitiator) => __awaiter(void 0, void 0, void 0, function* () {
     console.log("createPeerConnection-----");
     const pc = new RTCPeerConnection(config);
