@@ -20,11 +20,13 @@ const connectSocket = (server) => {
         socket.on('join-room', (roomId) => {
             console.log("join-room-- server--", roomId);
             const room = rooms.get(roomId);
+            console.log("room-----", room);
             if (!room) {
                 socket.emit('room-not-found');
                 return;
             }
             socket.join(roomId);
+            socket.emit('room-found');
             room.viewers.add(socket.id);
             socket.to(room.broadcaster).emit('viewer-joined', {
                 socketId: socket.id,

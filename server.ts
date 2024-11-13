@@ -16,11 +16,9 @@ config();
     app.get('/', (req, res) => {
         res.render('index');
     });
-
     app.get('/broadcast', (req, res) => {
         res.render('broadcast'); 
     });
-
     app.get('/viewer', (req, res) => {
         res.render('viewer');
     });

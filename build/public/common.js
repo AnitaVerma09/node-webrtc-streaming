@@ -74,31 +74,41 @@ const getMedia = () => __awaiter(void 0, void 0, void 0, function* () {
 });
 const toggleVideo = () => {
     try {
-        if (localStream) {
-            const videoTrack = localStream.getVideoTracks()[0];
-            return videoTrack;
-        }
+        const videoTrack = localStream.getVideoTracks()[0];
+        return videoTrack;
     }
     catch (error) {
         console.error("Error on toggle video:", error);
         throw error;
     }
-    // if (localStream) {
-    //     const videoTrack = localStream.getVideoTracks()[0];
-    //     if (videoTrack) {
-    //         videoTrack.enabled = enabled;
-    //         console.log(`Video ${enabled ? "enabled" : "disabled"}`);
-    //     }
-    // }
 };
+const videoEnable = (videoTrack) => {
+    try {
+        localStream.removeTrack(videoTrack);
+    }
+    catch (error) {
+        console.error("Error on video enable:", error);
+        throw error;
+    }
+};
+const newUserStream = () => __awaiter(void 0, void 0, void 0, function* () {
+    try {
+        localStream = yield navigator.mediaDevices.getUserMedia({ video: true });
+        localVideo.srcObject = localStream;
+        const newVideoTrack = localStream.getVideoTracks()[0];
+        console.log("newVideoTrack---", newVideoTrack);
+        const track = localStream.addTrack(newVideoTrack);
+        console.log("track---", track);
+        return newVideoTrack;
+    }
+    catch (err) {
+        throw err;
+    }
+});
 const toggleAudio = () => {
     if (localStream) {
         const audioTrack = localStream.getAudioTracks()[0];
         return audioTrack;
-        // if (audioTrack) {
-        //     audioTrack.enabled = enabled;
-        //     console.log(`Audio ${enabled ? "enabled" : "disabled"}`);
-        // }
     }
 };
 const createPeerConnection = (remoteSocketId, isInitiator) => __awaiter(void 0, void 0, void 0, function* () {
@@ -180,5 +190,5 @@ const showError = (message) => {
     errorMessage.style.display = "block";
     setTimeout(() => {
         errorMessage.style.display = "none";
-    }, 3000);
+    }, 10000);
 };

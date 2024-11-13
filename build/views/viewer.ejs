@@ -108,12 +108,15 @@
             border-radius: 0.5rem;
             margin-top: 1rem;
             display: none;
+            /* text-align: center;
+            width: 425px; */
         }
     </style>
 </head>
 
 <body class="p-4 md:p-8">
-    <main class="max-w-6xl mx-auto">
+    <!-- <main class="max-w-6xl mx-auto flex flex-col items-center justify-center"> -->
+        <main class="max-w-6xl mx-auto"></main>
         <div class="text-center mb-8">
             <h1 class="text-3xl md:text-4xl font-bold text-[#4c1d95] mb-2">Live Stream Viewer</h1>
             <p class="text-[#6b7280]">Join and watch live broadcasts in real-time</p>
@@ -168,7 +171,7 @@
     <script src="https://unpkg.com/simple-peer/simplepeer.min.js"></script>
     <script src="/public/common.js"></script>
     <script src="/public/viewer.js"></script>
-    <script>
+    <!-- <script>
         // Add this to your existing JavaScript
         document.getElementById('joinButton').addEventListener('click', function () {
             document.getElementById('welcomeScreen').style.display = 'none';
@@ -181,7 +184,7 @@
             document.getElementById('streamInterface').style.display = 'none';
             // Your existing leave logic here
         });
-    </script>
+    </script> -->
 </body>
 
 </html>

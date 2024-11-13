@@ -8,6 +8,8 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
         step((generator = generator.apply(thisArg, _arguments || [])).next());
     });
 };
+const welcomeScreen = document.getElementById('welcomeScreen');
+const streamInterface = document.getElementById('streamInterface');
 document.addEventListener("DOMContentLoaded", () => __awaiter(void 0, void 0, void 0, function* () {
     try {
         console.log("Viewer initializing socket...");
@@ -32,8 +34,6 @@ document.addEventListener("DOMContentLoaded", () => __awaiter(void 0, void 0, vo
         }
         try {
             yield joinRoom(roomId);
-            toggleButtons();
-            roomIdInput.disabled = true;
         }
         catch (error) {
             showError("Failed to join broadcast");
@@ -43,15 +43,25 @@ document.addEventListener("DOMContentLoaded", () => __awaiter(void 0, void 0, vo
     leaveButton.addEventListener("click", () => {
         console.log("Leave button clicked");
         cleanup();
+        welcomeScreen.style.display = 'block';
+        streamInterface.style.display = 'none';
         toggleButtons();
         roomIdInput.disabled = false;
         roomIdInput.value = "";
     });
+    socket.on("room-found", () => {
+        welcomeScreen.style.display = 'none';
+        streamInterface.style.display = 'block';
+        toggleButtons();
+        roomIdInput.disabled = true;
+    });
     socket.on("room-not-found", () => {
+        welcomeScreen.style.display = 'block';
+        streamInterface.style.display = 'none';
         console.log("Room not found");
         showError("Broadcast not found. Please check the ID.");
-        toggleButtons();
-        roomIdInput.disabled = false;
+        // toggleButtons();
+        // roomIdInput.disabled = false;
     });
     socket.on("broadcaster-left", () => {
         console.log("Broadcaster left");

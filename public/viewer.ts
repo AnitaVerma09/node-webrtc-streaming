@@ -1,4 +1,8 @@
+const welcomeScreen = document.getElementById('welcomeScreen') as HTMLElement;
+const streamInterface = document.getElementById('streamInterface') as HTMLElement;
+
 document.addEventListener("DOMContentLoaded", async () => {
+    
     try {
         console.log("Viewer initializing socket...");
         await initSocket();
@@ -13,6 +17,7 @@ document.addEventListener("DOMContentLoaded", async () => {
         leaveButton.disabled = !leaveButton.disabled;
     }
 
+   
     joinButton.addEventListener("click", async () => {
         console.log("Join button clicked");
         const roomId = roomIdInput.value.trim();
@@ -23,27 +28,37 @@ document.addEventListener("DOMContentLoaded", async () => {
         }
         try {
             await joinRoom(roomId);
-            toggleButtons();
-            roomIdInput.disabled = true;
         } catch (error) {
             showError("Failed to join broadcast");
             console.error("Error joining broadcast:", error);
         }
     });
 
+
     leaveButton.addEventListener("click", () => {
         console.log("Leave button clicked");
         cleanup();
+        welcomeScreen.style.display = 'block';
+        streamInterface.style.display = 'none';
         toggleButtons();
         roomIdInput.disabled = false;
         roomIdInput.value = "";
     });
 
-    socket.on("room-not-found", () => {
-        console.log("Room not found");
-        showError("Broadcast not found. Please check the ID.");
+    socket.on("room-found", () => {
+        welcomeScreen.style.display = 'none';
+        streamInterface.style.display = 'block';
         toggleButtons();
-        roomIdInput.disabled = false;
+        roomIdInput.disabled = true;
+    });
+
+    socket.on("room-not-found", () => {
+        welcomeScreen.style.display = 'block';
+        streamInterface.style.display = 'none';
+        console.log("Room not found");
+    showError("Broadcast not found. Please check the ID.");
+        // toggleButtons();
+        // roomIdInput.disabled = false;
     });
 
     socket.on("broadcaster-left", () => {
